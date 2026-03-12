@@ -1,5 +1,10 @@
 
+x = torch.arange(6)
+y = x.view(2,3)
+x = torch.arange(6)
+y = x.reshape(2,3)
 
+------------------------------------------------------------
 Q1: Difference between torch.tensor, torch.zeros, torch.randn
 
   1. torch.tensor()
@@ -32,7 +37,6 @@ Q1: Difference between torch.tensor, torch.zeros, torch.randn
 		 - Neural network weights are often initialized from normal distributions.
 
 ------------------------------------------------------------
-
 Q2: What does tensor shape (3, 4) represent? Rows and columns?
 
   - A tensor with shape (3, 4) means:
@@ -56,7 +60,6 @@ Q2: What does tensor shape (3, 4) represent? Rows and columns?
 	  - Understanding shapes is critical when debugging models.
 
 ------------------------------------------------------------
-
 Q3: Difference between reshape and view in PyTorch
 
   1. view()
@@ -80,7 +83,6 @@ Q3: Difference between reshape and view in PyTorch
 		 - Always works, even when memory is not contiguous.
 
 ------------------------------------------------------------
-
 Q4: Why must matrix multiplication follow: A columns = B rows? (Intuitive)
 
   - To compute one value in the output matrix:
@@ -88,113 +90,45 @@ Q4: Why must matrix multiplication follow: A columns = B rows? (Intuitive)
 	  2. Take one column from matrix B
 	  3. Multiply corresponding elements
 	  4. Sum the results
-If tensor shape is
 
-(3,4)
+------------------------------------------------------------
+Q5: Shared memory: torch.from_numpy()
 
-What does it represent?
+  - If you create t = torch.from_numpy(n), t shares memory with the numpy array n.
+  - If you modify n during training, t silently changes too — because torch.from_numpy() shares memory, it does NOT make a copy.
+  - Your training data gets corrupted with no error message.
+  - This is one of the nastiest bugs in ML pipelines because:
+	  - No exception is raised
+	  - No warning appears
+	  - Model just trains on wrong data
+	  - Results are subtly wrong
+	  - You spend hours debugging the wrong thing
+  - ❌ Dangerous — shares memory: t = torch.from_numpy(n)
+  - ✅ Safe — creates a copy: t = torch.tensor(n)
 
-Explain rows and columns.
+------------------------------------------------------------
+Q6: view() and contiguous memory
 
-Answer 2 - A tensor with shape (3,4) means:
+  - view() is like reshape, but shares memory with the original tensor and requires contiguous memory.
+  - Contiguous = tensor values stored sequentially in memory (like a neat row of houses on one street)
+  - Example (contiguous):
+	  t = torch.rand(3, 4)
+	  t.view(2, 6)  # works
+  - Example (not contiguous):
+	  t = torch.rand(3, 4)
+	  t_transposed = t.T        # transpose breaks contiguous memory
+	  t_transposed.view(2, 6)   # RuntimeError: not contiguous
+  - Why? Transpose rearranges how memory is read but doesn't physically move values in memory, so the memory layout is no longer sequential.
+  - The fix — two options:
+	  1. Make it contiguous first: t_transposed.contiguous().view(2, 6)
+	  2. Use reshape() instead: t_transposed.reshape(2, 6) (always works)
+  - Rule to remember:
+	  view()    → fast, shares memory, fails if not contiguous
+	  reshape() → safe, works always, copies only when necessary (use this when in doubt)
 
-3 rows
+------------------------------------------------------------
+Important concepts to remember:
 
-4 columns
-
-total elements = 3 × 4 = 12
-
-Example tensor:
-
-[[1, 2, 3, 4],
- [5, 6, 7, 8],
- [9,10,11,12]]
-Why This Matters in AI
-
-In machine learning, shapes often represent data structure.
-
-For example:
-
-Tensor Shape	Meaning
-(32, 100)	batch of 32 samples with 100 features
-(10, 512)	10 tokens with 512-dimensional embeddings
-(64, 3, 224, 224)	batch of 64 images
-
-In transformer models like LLaMA or GPT-4, tensors often have shapes like:
-
-(batch_size, sequence_length, embedding_dimension)
-
-Example:
-
-(8, 128, 768)
-
-Meaning:
-
-8 sequences
-
-128 tokens each
-
-768-dimensional embedding
-
-This understanding becomes critical when debugging models
-
-###########################################################################
-
-Question 3 - Difference between reshape and view in PyTorch
-1️⃣ view()
-
-view() returns a new tensor that shares the same memory as the original tensor.
-
-Example:
-
-x = torch.arange(6)
-y = x.view(2,3)
-
-Important property:
-
-No memory copy
-
-Works only if tensor is contiguous in memory
-
-If the tensor is not contiguous, view() will fail.
-
-2️⃣ reshape()
-
-reshape() is more flexible.
-
-Example:
-
-x = torch.arange(6)
-y = x.reshape(2,3)
-
-What happens internally:
-
-If possible → behaves like view()
-
-If needed → creates a copy of the tensor
-
-So it always works, even when memory is not contiguous.
-
-#####################################################
-
-Question 4) Question 3
-
-Why must matrix multiplication follow:
-
-A columns = B rows
-
-Explain intuitively, not mathematically.
-
-Think about how one value in the output matrix is computed.
-
-Answer 4) Intuitive Explanation
-
-To compute one value in the output matrix, we:
-
-Take one row from matrix A
-
-Take one column from matrix B
-
-Multiply corresponding elements
-
-Sum the results
+  1. torch.from_numpy() shares memory — use torch.tensor() when you need a safe copy
+  2. view() fails after transpose — use reshape() or call .contiguous() first
+  3. In-place operations (add_, mul_) modify the original tensor and affect anything sharing that memory
