@@ -1,0 +1,200 @@
+
+
+Q1: Difference between torch.tensor, torch.zeros, torch.randn
+
+  1. torch.tensor()
+	 - Creates a tensor from existing data.
+	 - Example:
+		 import torch
+		 x = torch.tensor([1, 2, 3])
+	 - Key point: Data is explicitly provided by the user.
+
+  2. torch.zeros()
+	 - Creates a tensor filled with zeros of a given shape.
+	 - Example:
+		 torch.zeros(3, 4)
+		 # Output:
+		 # [[0, 0, 0, 0],
+		 #  [0, 0, 0, 0],
+		 #  [0, 0, 0, 0]]
+	 - Used for:
+		 - Initializing weights
+		 - Creating placeholder tensors
+
+  3. torch.randn()
+	 - Creates a tensor with random values sampled from a normal distribution.
+	 - Example:
+		 torch.randn(3, 4)
+		 # Example output: 0.34, -1.21, 0.87, -0.45
+	 - Important:
+		 - Not between 0 and 1
+		 - Values come from a standard normal distribution (mean = 0, std = 1)
+		 - Neural network weights are often initialized from normal distributions.
+
+------------------------------------------------------------
+
+Q2: What does tensor shape (3, 4) represent? Rows and columns?
+
+  - A tensor with shape (3, 4) means:
+	  - 3 rows
+	  - 4 columns
+	  - Total elements = 3 x 4 = 12
+  - Example tensor:
+	  [[ 1,  2,  3,  4],
+	   [ 5,  6,  7,  8],
+	   [ 9, 10, 11, 12]]
+
+  - Why This Matters in AI:
+	  - In machine learning, shapes represent data structure.
+	  - Examples:
+		  (32, 100)      -> batch of 32 samples with 100 features
+		  (10, 512)      -> 10 tokens with 512-dimensional embeddings
+		  (64, 3, 224, 224) -> batch of 64 images
+	  - In transformer models (like LLaMA or GPT-4), tensors often have shapes like:
+		  (batch_size, sequence_length, embedding_dimension)
+		  Example: (8, 128, 768) means 8 sequences, 128 tokens each, 768-dimensional embedding
+	  - Understanding shapes is critical when debugging models.
+
+------------------------------------------------------------
+
+Q3: Difference between reshape and view in PyTorch
+
+  1. view()
+	 - Returns a new tensor that shares the same memory as the original tensor.
+	 - Example:
+		 x = torch.arange(6)
+		 y = x.view(2, 3)
+	 - Important:
+		 - No memory copy
+		 - Works only if tensor is contiguous in memory
+		 - If not contiguous, view() will fail.
+
+  2. reshape()
+	 - More flexible than view().
+	 - Example:
+		 x = torch.arange(6)
+		 y = x.reshape(2, 3)
+	 - What happens internally:
+		 - If possible, behaves like view()
+		 - If needed, creates a copy of the tensor
+		 - Always works, even when memory is not contiguous.
+
+------------------------------------------------------------
+
+Q4: Why must matrix multiplication follow: A columns = B rows? (Intuitive)
+
+  - To compute one value in the output matrix:
+	  1. Take one row from matrix A
+	  2. Take one column from matrix B
+	  3. Multiply corresponding elements
+	  4. Sum the results
+If tensor shape is
+
+(3,4)
+
+What does it represent?
+
+Explain rows and columns.
+
+Answer 2 - A tensor with shape (3,4) means:
+
+3 rows
+
+4 columns
+
+total elements = 3 × 4 = 12
+
+Example tensor:
+
+[[1, 2, 3, 4],
+ [5, 6, 7, 8],
+ [9,10,11,12]]
+Why This Matters in AI
+
+In machine learning, shapes often represent data structure.
+
+For example:
+
+Tensor Shape	Meaning
+(32, 100)	batch of 32 samples with 100 features
+(10, 512)	10 tokens with 512-dimensional embeddings
+(64, 3, 224, 224)	batch of 64 images
+
+In transformer models like LLaMA or GPT-4, tensors often have shapes like:
+
+(batch_size, sequence_length, embedding_dimension)
+
+Example:
+
+(8, 128, 768)
+
+Meaning:
+
+8 sequences
+
+128 tokens each
+
+768-dimensional embedding
+
+This understanding becomes critical when debugging models
+
+###########################################################################
+
+Question 3 - Difference between reshape and view in PyTorch
+1️⃣ view()
+
+view() returns a new tensor that shares the same memory as the original tensor.
+
+Example:
+
+x = torch.arange(6)
+y = x.view(2,3)
+
+Important property:
+
+No memory copy
+
+Works only if tensor is contiguous in memory
+
+If the tensor is not contiguous, view() will fail.
+
+2️⃣ reshape()
+
+reshape() is more flexible.
+
+Example:
+
+x = torch.arange(6)
+y = x.reshape(2,3)
+
+What happens internally:
+
+If possible → behaves like view()
+
+If needed → creates a copy of the tensor
+
+So it always works, even when memory is not contiguous.
+
+#####################################################
+
+Question 4) Question 3
+
+Why must matrix multiplication follow:
+
+A columns = B rows
+
+Explain intuitively, not mathematically.
+
+Think about how one value in the output matrix is computed.
+
+Answer 4) Intuitive Explanation
+
+To compute one value in the output matrix, we:
+
+Take one row from matrix A
+
+Take one column from matrix B
+
+Multiply corresponding elements
+
+Sum the results
